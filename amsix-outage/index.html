@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+    <title>WebSockets Leaflet</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="http://atlas-stream.ripe.net/stream/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js"></script>
+    <script src="probesLocation.js"></script>
+    <script src="streamConnection.js"></script>
+    <script src="statistics.js"></script>
+    <script src="mainView.js"></script>
+
+</head>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-lg-2">
+            <ul class="nav navbar-right nav-tabs " role="tablist">
+                <li role="presentation" class="active"><a href="#map-tab" role="tab" data-toggle="tab">Map</a></li>
+                <li role="presentation"><a href="#table-tab" role="tab" data-toggle="tab">Table</a></li>
+                <li role="presentation"><a href="#stats-tab" role="tab" data-toggle="tab">Stats</a></li>
+            </ul>
+        </div>
+        <div class="col-lg-8">
+            <form class="form-inline navbar-left">
+                <div class="form-group">
+                    <label for="prbID">Probe ID</label>
+                    <input type="text" class="form-control" id="prbID" placeholder="Single Probe ID">
+
+                    <label for="asn">AS</label>
+                    <input type="text" class="form-control" id="asn" placeholder="AS number">
+
+                </div>
+                <button type="submit" class="btn btn-info">Filter</button>
+                <button id="pause" type="button" class="btn btn-success">Pause</button>
+                <button id="clear-map" type="button" class="btn btn-info">Clear Map</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<div role="tabpanel">
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="map-tab">
+            <div id="map" style="width: 1000px; height: 700px"> </div>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="table-tab">
+            <table class="table table-hover" id="connections-table"><tr>
+             <th>Probe ID</th>
+             <th>ASN</th>
+             <th>Prefix</th>
+             <th>Controller</th>
+             <th>Time</th>
+             <th>Type</th>
+         </tr></table>
+     </div>
+     <div role="tabpanel" class="tab-pane" id="stats-tab">
+        Top 10 ANSs by connection activity the last 30min.
+         <table class="table table-hover" id="stats-table"><thead><tr>
+             <th>ASN</th>
+             <th># Activity (Up/Down)</th>
+             <th>Unique Probes</th>
+         </tr></thead><tbody></tbody>
+         </table>
+    </div>
+ </div>
+</div>
+
+
+
+
+
+
+<script>
+var streamManager = new StreamManager();
+var stats = new Statistics();
+stats.init();
+var view = new PageView(streamManager, stats);
+view.init();
+streamManager.setup({ stream_type: "probestatus", startTime: "1431511200", stopTime: "1431518400", speed:25}, false, view.onMessage);
+
+</script>
