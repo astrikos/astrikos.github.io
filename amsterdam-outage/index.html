@@ -84,6 +84,6 @@ var stats = new Statistics();
 stats.init();
 var view = new PageView(streamManager, stats);
 view.init();
-streamManager.setup({ stream_type: "probestatus", startTime: "1427445541", stopTime: "1427455630", speed:25}, false, view.onMessage);
+streamManager.setup({ stream_type: "probestatus", startTime: "1427445541", endTime: "1427455630", speed:25}, false, view.onMessage);
 
 </script>
