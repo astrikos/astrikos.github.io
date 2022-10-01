@@ -2,6 +2,7 @@ baseURL = 'https://astrikos.github.io'
 languageCode = 'en-us'
 title = 'Andreas Strikos'
 theme = "ink-free"
+publishDir = "docs"
 
 paginate = 5
 
