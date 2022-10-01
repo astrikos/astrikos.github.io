@@ -1,4 +1,59 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Kubernetes on Andreas Strikos</title><link>https://astrikos.github.io/tags/kubernetes/</link><description>Recent content in Kubernetes on Andreas Strikos</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 01 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/kubernetes/index.xml" rel="self" type="application/rss+xml"/><item><title>Demystifying Kubernetes networking using TCPDUMP</title><link>https://astrikos.github.io/2022/06/demystifying-kubernetes-networking-using-tcpdump/</link><pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/2022/06/demystifying-kubernetes-networking-using-tcpdump/</guid><description>Have you ever wondered how a packet reaches its destination in a Kubernetes environment? How many hops a packet will take before it even “exits” from its Kubernetes node? How do components like kube-proxy and service mesh solutions like Istio and Linkerd influence the flow of this packet? One of the best ways to observe packets is of course TCPDUMP. In this article, we will try to demystify Kubernetes and Istio networking behaviours and see in practice how these tools work by using TCP streams from TCPDUMP.</description></item><item><title>Sometimes It's Not Always DNS</title><link>https://astrikos.github.io/2021/07/sometimes-its-not-always-dns/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/2021/07/sometimes-its-not-always-dns/</guid><description>Beat’s infrastructure architecture consists of multiple islands that each one of them contains a separate Kubernetes cluster. Recently we took the decision to allow services from different clusters to be able to discover each other. Since we were already using Istio we decided to leverage Istio’s multi cluster capability.
-After preparing our setup and testing it with some of our home grown tools, we tried to switch one of our lower traffic services to use Istio’s multi cluster discovery.</description></item><item><title>A curious case of AWS NLB timeouts in Kubernetes</title><link>https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/</link><pubDate>Tue, 13 Apr 2021 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/</guid><description>Some time ago Beat&amp;rsquo;s infrastructure team underwent a migration of the flagship service into our Kubernetes clusters and at the time we documented our preparations in a previous article.
-Prior to the migration of the monolith we already had several services inside our Kubernetes cluster, which the monolith and other external services had to reach. The way to do that, was to use ingress controllers with help from external-dns to automatically expose microservices to a predefined DNS schema endpoint.</description></item><item><title>Yet Another Kubernetes DNS Latency Story</title><link>https://astrikos.github.io/2020/10/yet-another-kubernetes-dns-latency-story/</link><pubDate>Thu, 15 Oct 2020 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/2020/10/yet-another-kubernetes-dns-latency-story/</guid><description>In previous Beat articles we talked about the importance of DNS in our Kubernetes clusters and how we managed to scale through different techniques. We also mentioned that one of the upcoming versions of Kubernetes would provide the ultimate way to handle our DNS problems and give us some peace of mind while working on other parts. At Beat, we use kops to provision and maintain our cluster so we opted on waiting until kops would support it.</description></item><item><title>Preparing before the storm: Migrating our monolith into Kubernetes</title><link>https://astrikos.github.io/2020/07/preparing-before-the-storm-migrating-our-monolith-into-kubernetes/</link><pubDate>Wed, 08 Jul 2020 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/2020/07/preparing-before-the-storm-migrating-our-monolith-into-kubernetes/</guid><description>Some time ago Beat’s infrastructure team decided to invest in a Kubernetes powered infrastructure. Like most companies, we started with hosting less significant services inside the new Kubernetes platform. Moving on, we were gradually onboarding more and more services. Finally, we decided that every new service developed would be required to run inside Kubernetes.
-Having a critical amount of microservices in our clusters already, the next logical step was to move our main backbone service, our monolith, into Kubernetes.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Kubernetes on Andreas Strikos</title>
+    <link>https://astrikos.github.io/tags/kubernetes/</link>
+    <description>Recent content in Kubernetes on Andreas Strikos</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 01 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Demystifying Kubernetes networking using TCPDUMP</title>
+      <link>https://astrikos.github.io/2022/06/demystifying-kubernetes-networking-using-tcpdump/</link>
+      <pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/2022/06/demystifying-kubernetes-networking-using-tcpdump/</guid>
+      <description>Have you ever wondered how a packet reaches its destination in a Kubernetes environment? How many hops a packet will take before it even “exits” from its Kubernetes node? How do components like kube-proxy and service mesh solutions like Istio and Linkerd influence the flow of this packet? One of the best ways to observe packets is of course TCPDUMP. In this article, we will try to demystify Kubernetes and Istio networking behaviours and see in practice how these tools work by using TCP streams from TCPDUMP.</description>
+    </item>
+    
+    <item>
+      <title>Sometimes It&#39;s Not Always DNS</title>
+      <link>https://astrikos.github.io/2021/07/sometimes-its-not-always-dns/</link>
+      <pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/2021/07/sometimes-its-not-always-dns/</guid>
+      <description>Beat’s infrastructure architecture consists of multiple islands that each one of them contains a separate Kubernetes cluster. Recently we took the decision to allow services from different clusters to be able to discover each other. Since we were already using Istio we decided to leverage Istio’s multi cluster capability.
+After preparing our setup and testing it with some of our home grown tools, we tried to switch one of our lower traffic services to use Istio’s multi cluster discovery.</description>
+    </item>
+    
+    <item>
+      <title>A curious case of AWS NLB timeouts in Kubernetes</title>
+      <link>https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/</link>
+      <pubDate>Tue, 13 Apr 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/</guid>
+      <description>Some time ago Beat&amp;rsquo;s infrastructure team underwent a migration of the flagship service into our Kubernetes clusters and at the time we documented our preparations in a previous article.
+Prior to the migration of the monolith we already had several services inside our Kubernetes cluster, which the monolith and other external services had to reach. The way to do that, was to use ingress controllers with help from external-dns to automatically expose microservices to a predefined DNS schema endpoint.</description>
+    </item>
+    
+    <item>
+      <title>Yet Another Kubernetes DNS Latency Story</title>
+      <link>https://astrikos.github.io/2020/10/yet-another-kubernetes-dns-latency-story/</link>
+      <pubDate>Thu, 15 Oct 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/2020/10/yet-another-kubernetes-dns-latency-story/</guid>
+      <description>In previous Beat articles we talked about the importance of DNS in our Kubernetes clusters and how we managed to scale through different techniques. We also mentioned that one of the upcoming versions of Kubernetes would provide the ultimate way to handle our DNS problems and give us some peace of mind while working on other parts. At Beat, we use kops to provision and maintain our cluster so we opted on waiting until kops would support it.</description>
+    </item>
+    
+    <item>
+      <title>Preparing before the storm: Migrating our monolith into Kubernetes</title>
+      <link>https://astrikos.github.io/2020/07/preparing-before-the-storm-migrating-our-monolith-into-kubernetes/</link>
+      <pubDate>Wed, 08 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/2020/07/preparing-before-the-storm-migrating-our-monolith-into-kubernetes/</guid>
+      <description>Some time ago Beat’s infrastructure team decided to invest in a Kubernetes powered infrastructure. Like most companies, we started with hosting less significant services inside the new Kubernetes platform. Moving on, we were gradually onboarding more and more services. Finally, we decided that every new service developed would be required to run inside Kubernetes.
+Having a critical amount of microservices in our clusters already, the next logical step was to move our main backbone service, our monolith, into Kubernetes.</description>
+    </item>
+    
+  </channel>
+</rss>

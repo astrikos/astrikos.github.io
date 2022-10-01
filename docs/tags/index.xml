@@ -1,1 +1,110 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tags on Andreas Strikos</title><link>https://astrikos.github.io/tags/</link><description>Recent content in Tags on Andreas Strikos</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 01 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/index.xml" rel="self" type="application/rss+xml"/><item><title>Iptables</title><link>https://astrikos.github.io/tags/iptables/</link><pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/iptables/</guid><description/></item><item><title>Istio</title><link>https://astrikos.github.io/tags/istio/</link><pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/istio/</guid><description/></item><item><title>Kubernetes</title><link>https://astrikos.github.io/tags/kubernetes/</link><pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/kubernetes/</guid><description/></item><item><title>TCPDUMP</title><link>https://astrikos.github.io/tags/tcpdump/</link><pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/tcpdump/</guid><description/></item><item><title>Conntrack</title><link>https://astrikos.github.io/tags/conntrack/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/conntrack/</guid><description/></item><item><title>DNS</title><link>https://astrikos.github.io/tags/dns/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/dns/</guid><description/></item><item><title>AWS</title><link>https://astrikos.github.io/tags/aws/</link><pubDate>Tue, 13 Apr 2021 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/aws/</guid><description/></item><item><title>AWS NLB</title><link>https://astrikos.github.io/tags/aws-nlb/</link><pubDate>Tue, 13 Apr 2021 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/aws-nlb/</guid><description/></item><item><title>Kops</title><link>https://astrikos.github.io/tags/kops/</link><pubDate>Thu, 15 Oct 2020 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/kops/</guid><description/></item><item><title>ElastiCache</title><link>https://astrikos.github.io/tags/elasticache/</link><pubDate>Tue, 17 Mar 2020 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/elasticache/</guid><description/></item><item><title>Redis</title><link>https://astrikos.github.io/tags/redis/</link><pubDate>Tue, 17 Mar 2020 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/tags/redis/</guid><description/></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Andreas Strikos</title>
+    <link>https://astrikos.github.io/tags/</link>
+    <description>Recent content in Tags on Andreas Strikos</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 01 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Iptables</title>
+      <link>https://astrikos.github.io/tags/iptables/</link>
+      <pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/iptables/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Istio</title>
+      <link>https://astrikos.github.io/tags/istio/</link>
+      <pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/istio/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Kubernetes</title>
+      <link>https://astrikos.github.io/tags/kubernetes/</link>
+      <pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/kubernetes/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>TCPDUMP</title>
+      <link>https://astrikos.github.io/tags/tcpdump/</link>
+      <pubDate>Wed, 01 Jun 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/tcpdump/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Conntrack</title>
+      <link>https://astrikos.github.io/tags/conntrack/</link>
+      <pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/conntrack/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>DNS</title>
+      <link>https://astrikos.github.io/tags/dns/</link>
+      <pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/dns/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>AWS</title>
+      <link>https://astrikos.github.io/tags/aws/</link>
+      <pubDate>Tue, 13 Apr 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/aws/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>AWS NLB</title>
+      <link>https://astrikos.github.io/tags/aws-nlb/</link>
+      <pubDate>Tue, 13 Apr 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/aws-nlb/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Kops</title>
+      <link>https://astrikos.github.io/tags/kops/</link>
+      <pubDate>Thu, 15 Oct 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/kops/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ElastiCache</title>
+      <link>https://astrikos.github.io/tags/elasticache/</link>
+      <pubDate>Tue, 17 Mar 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/elasticache/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Redis</title>
+      <link>https://astrikos.github.io/tags/redis/</link>
+      <pubDate>Tue, 17 Mar 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/tags/redis/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

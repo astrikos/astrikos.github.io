@@ -1,1 +1,20 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Kops on Andreas Strikos</title><link>https://astrikos.github.io/tags/kops/</link><description>Recent content in Kops on Andreas Strikos</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 15 Oct 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/kops/index.xml" rel="self" type="application/rss+xml"/><item><title>Yet Another Kubernetes DNS Latency Story</title><link>https://astrikos.github.io/2020/10/yet-another-kubernetes-dns-latency-story/</link><pubDate>Thu, 15 Oct 2020 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/2020/10/yet-another-kubernetes-dns-latency-story/</guid><description>In previous Beat articles we talked about the importance of DNS in our Kubernetes clusters and how we managed to scale through different techniques. We also mentioned that one of the upcoming versions of Kubernetes would provide the ultimate way to handle our DNS problems and give us some peace of mind while working on other parts. At Beat, we use kops to provision and maintain our cluster so we opted on waiting until kops would support it.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Kops on Andreas Strikos</title>
+    <link>https://astrikos.github.io/tags/kops/</link>
+    <description>Recent content in Kops on Andreas Strikos</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 15 Oct 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/kops/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Yet Another Kubernetes DNS Latency Story</title>
+      <link>https://astrikos.github.io/2020/10/yet-another-kubernetes-dns-latency-story/</link>
+      <pubDate>Thu, 15 Oct 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/2020/10/yet-another-kubernetes-dns-latency-story/</guid>
+      <description>In previous Beat articles we talked about the importance of DNS in our Kubernetes clusters and how we managed to scale through different techniques. We also mentioned that one of the upcoming versions of Kubernetes would provide the ultimate way to handle our DNS problems and give us some peace of mind while working on other parts. At Beat, we use kops to provision and maintain our cluster so we opted on waiting until kops would support it.</description>
+    </item>
+    
+  </channel>
+</rss>

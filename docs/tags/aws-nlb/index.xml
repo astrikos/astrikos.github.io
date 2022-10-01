@@ -1,2 +1,21 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>AWS NLB on Andreas Strikos</title><link>https://astrikos.github.io/tags/aws-nlb/</link><description>Recent content in AWS NLB on Andreas Strikos</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 13 Apr 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/aws-nlb/index.xml" rel="self" type="application/rss+xml"/><item><title>A curious case of AWS NLB timeouts in Kubernetes</title><link>https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/</link><pubDate>Tue, 13 Apr 2021 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/</guid><description>Some time ago Beat&amp;rsquo;s infrastructure team underwent a migration of the flagship service into our Kubernetes clusters and at the time we documented our preparations in a previous article.
-Prior to the migration of the monolith we already had several services inside our Kubernetes cluster, which the monolith and other external services had to reach. The way to do that, was to use ingress controllers with help from external-dns to automatically expose microservices to a predefined DNS schema endpoint.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AWS NLB on Andreas Strikos</title>
+    <link>https://astrikos.github.io/tags/aws-nlb/</link>
+    <description>Recent content in AWS NLB on Andreas Strikos</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 13 Apr 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/aws-nlb/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>A curious case of AWS NLB timeouts in Kubernetes</title>
+      <link>https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/</link>
+      <pubDate>Tue, 13 Apr 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/</guid>
+      <description>Some time ago Beat&amp;rsquo;s infrastructure team underwent a migration of the flagship service into our Kubernetes clusters and at the time we documented our preparations in a previous article.
+Prior to the migration of the monolith we already had several services inside our Kubernetes cluster, which the monolith and other external services had to reach. The way to do that, was to use ingress controllers with help from external-dns to automatically expose microservices to a predefined DNS schema endpoint.</description>
+    </item>
+    
+  </channel>
+</rss>

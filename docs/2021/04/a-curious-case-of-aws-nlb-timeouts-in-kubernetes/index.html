@@ -1,3 +1,288 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>A curious case of AWS NLB timeouts in Kubernetes - Andreas Strikos</title><meta name=viewport content="width=device-width,initial-scale=1"><meta itemprop=name content="A curious case of AWS NLB timeouts in Kubernetes"><meta itemprop=description content="A debugging adventure that allowed us to solve the tail latencies our Kubernetes applications were experiencing when talking with our AWS NLB."><meta itemprop=datePublished content="2021-04-13T00:00:00+00:00"><meta itemprop=dateModified content="2021-04-13T00:00:00+00:00"><meta itemprop=wordCount content="1610"><meta itemprop=keywords content="AWS,Kubernetes,AWS NLB,TCPDUMP,"><meta property="og:title" content="A curious case of AWS NLB timeouts in Kubernetes"><meta property="og:description" content="A debugging adventure that allowed us to solve the tail latencies our Kubernetes applications were experiencing when talking with our AWS NLB."><meta property="og:type" content="article"><meta property="og:url" content="https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-04-13T00:00:00+00:00"><meta property="article:modified_time" content="2021-04-13T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="A curious case of AWS NLB timeouts in Kubernetes"><meta name=twitter:description content="A debugging adventure that allowed us to solve the tail latencies our Kubernetes applications were experiencing when talking with our AWS NLB."><link rel=stylesheet type=text/css media=screen href=https://astrikos.github.iocss/normalize.css><link rel=stylesheet type=text/css media=screen href=https://astrikos.github.iocss/main.css><link id=dark-scheme rel=stylesheet type=text/css href=https://astrikos.github.iocss/dark.css><script src=https://astrikos.github.iojs/feather.min.js></script>
-<script src=https://astrikos.github.iojs/main.js></script></head><body><div class="container wrapper"><div class=header><div class=avatar><a href=https://astrikos.github.io><img src=/boy-student-sitting.webp alt="Andreas Strikos"></a></div><h1 class=site-title><a href=https://astrikos.github.io>Andreas Strikos</a></h1><div class=site-description><p>Software and Infrastructure Engineer</p><nav class="nav social"><ul class=flat><li><a href=https://github.com/astrikos title=Github><i data-feather=github></i></a></li><li><a href=https://www.linkedin.com/in/astrikos/ title=LinkedIn><i data-feather=linkedin></i></a></li><span class=scheme-toggle><a href=# id=scheme-toggle></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/posts>All posts</a></li><li><a href=/tags>Tags</a></li></ul></nav></div><div class=post><div class=post-header><div class=meta><div class=date><span class=day>13</span>
-<span class=rest>Apr 2021</span></div></div><div class=matter><h1 class=title>A curious case of AWS NLB timeouts in Kubernetes</h1></div></div><div class=markdown><figure><img src=/xBKI1zezfbGA1gZz.png></figure><p>Some time ago <a href=https://thebeat.co/en/>Beat</a>&rsquo;s infrastructure team underwent a migration of the flagship service into our Kubernetes clusters and at the time we documented our preparations in a <a href=https://build.thebeat.co/preparing-before-the-storm-migrating-our-monolith-into-kubernetes-581611c10ae6>previous article</a>.</p><p>Prior to the migration of the monolith we already had several services inside our Kubernetes cluster, which the monolith and other external services had to reach. The way to do that, was to use ingress controllers with help from <a href=https://github.com/kubernetes-sigs/external-dns>external-dns</a> to automatically expose microservices to a predefined DNS schema endpoint. Some of these ingress controllers were located behind AWS NLBs, mainly to serve our gRPC traffic.</p><h3 id=tail-latencies><strong>Tail Latencies</strong></h3><p>At Beat we have an island architecture where each country we serve has its own infrastructure island and its own Kubernetes cluster. While we tend to keep things local some new services lately need to talk to services in other clusters (cross cluster services). One of these services is communicating using gRPC and is exposed using AWS NLB so services from other clusters can reach it. Besides services from different clusters, we also had services from the <strong><em>same</em></strong> cluster reaching it using also the very same NLB endpoint. Reaching NLB endpoints from inside the cluster was not by design rather was neglecting our configuration after migrating some services inside our Kubernetes clusters.</p><p>At some point we noticed that services from the <strong><em>same</em></strong> cluster trying to reach the NLB endpoint were getting high latencies for the 99% percentile, known as high <a href=https://en.wikipedia.org/wiki/Long_tail>tail latencies</a>.</p><figure><img src=/QX5ydqst91H6c9tw.png><figcaption>High 99th percentile latencies as seen from application using NLB endpoints</figcaption></figure><p>Accessing the same service from <strong><em>inside</em></strong> the cluster using the native kubernetes DNS schema didn’t have the same results. Everything looked fine.</p><figure><img src=/80lWvbml6aKn2_1.png><figcaption>Normal 99th percentile latencies as seen from application when using internal Kubernetes DNS endpoints</figcaption></figure><p>We could have ended our saga there, but our engineering instincts were telling us that something is there, and it might also affect services that use the endpoint from outside the cluster even if we didn’t have proof yet.</p><p>The following graph describes the situation we were seeing.</p><figure><img src=/WDwu1WzjTcF0keoD.png><figcaption>Latencies based on the different endpoints</figcaption></figure><p>Summarizing, service A from cluster A accessing service B from cluster A using NLB endpoint through ingress controller and NLB was seeing high tail latencies. Service A from cluster A accessing cluster’s A service B using kubernetes native DNS endpoint didn’t see high tail latencies. Service C from cluster B accessing service B using NLB endpoint was also not seeing high latencies.</p><h3 id=debugging><strong>Debugging</strong></h3><p>Our first attempt to fix these high latencies was to experiment with several <a href=https://github.com/grpc/grpc/blob/master/doc/keepalive.md#defaults-values>keepalive options</a> of the gRPC protocol from the application side. Initially, we suspected that NLB was somehow ignoring keepalives and connections were going stale. Unfortunately, none of the combinations we tried made any difference. We were still seeing the same latency issue.</p><p>We knew that the problem didn’t exist using the kubernetes DNS endpoint, so that meant that the problem was somewhere between NLB and our ingress controller.</p><p>Our next step was to focus on the path from the kubernetes node to AWS NLB.</p><p>Since none of our experiments on the application level were fruitful we decided to see what is happening in the network layer from one of our instances using tcpdump. Capturing and examining some traffic we initially noticed that we had several retransmissions of SYN packets.</p><figure><img src=/GSQYeXvTx8HJP17r.png><figcaption>Network capture showing TCP SYN packet retransmissions</figcaption></figure><p>Examining several individual TCP streams we observed that each of them was lacking a response.</p><figure><img src=/LA5y2LNQ3Uu1Iv6C.png><figcaption>Network capture showing TCP session’s unacknowledged SYN packets</figcaption></figure><p>That meant that we were trying to open TCP connections with the NLB but we didn’t get a SYN-ACK response packet to be able to establish the connection. The weird thing is that we were not seeing any kind of response from the target, for example a RST packet that would help us understand something more.</p><p>Observing several performance metrics gathered periodically from our instance didn’t reveal any signs of load or exhaustion of any resource type of the instances. Examining several TCP streams didn’t also show us any low window sizes that would signal a busy TCP buffers from either side.</p><p>Using wireshark’s tooling we graphed the retransmitted SYN packets from our instance and we could instantly see some correlation with the latencies that the applications hosted in the machine were seeing.</p><figure><img src=/GPPU2Sw4fNc5LhBn.png><figcaption>Wireshark I/O graph of TCP SYN packet retransmissions</figcaption></figure><figure><img src=/zHRt4ka79BtoCwH8.png><figcaption>Latencies seen from application correlated with wireshark I/O graph</figcaption></figure><p>It was obvious that latencies were caused because we could not establish a new connection to the NLB and the application was waiting for some time until it retried with a new connection.</p><p>After some further googling we landed in a couple of articles (<a href=https://www.linkedin.com/pulse/connection-optimization-between-nlb-target-groups-romesh-samarakone/>[1]</a>, <a href=https://www.niels-ole.com/cloud/aws/linux/2020/10/18/nlb-resets.html>[2]</a>) which didn’t exactly describe what we were experiencing but led us to make a new experiment attempt to disable the “<strong><em>preserve client IP</em></strong>” flag on our NLB target groups. This flag is enabled by default on Kubernetes AWS NLBs when we create a “<em>loadbalancer</em>” type of service and as suggested by the name it makes NLBs to preserve the client’s IP in the connections to its targets.</p><p>Magically, this solved all our tail latencies issues; we were not seeing any more latencies and we didn’t have further retransmissions.</p><h3 id=mystery-unwound><strong>Mystery unwound</strong></h3><p>So, what has happened here? Why did this option fix the retransmissions and latency issue for us?</p><p>Reading the same <a href=https://www.niels-ole.com/cloud/aws/linux/2020/10/18/nlb-resets.html>article</a> once more we were directed to a <a href=https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-troubleshooting.html#loopback-timeout>specific documentation part of AWS</a> which states the following lines:</p><blockquote><p>Internal load balancers do not support hairpinning or loopback. When you register targets by instance ID, the source IP addresses of clients are preserved. If an instance is a client of an internal load balancer that it’s registered with by instance ID, the connection succeeds only if the request is routed to a different instance. Otherwise, the source and destination IP addresses are the same and the connection times out.</p></blockquote><p>Reading that made us connect the dots and unwound the mystery.</p><p>In order for everyone to be able to follow our story we will spend the next paragraph explaining how a Kubernetes Loadbalancer service type works. If you are already familiar with it feel free to skip and go to the next one.</p><hr><p>A <a href=https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer>loadbalancer service</a> is basically a <a href=https://kubernetes.io/docs/concepts/services-networking/service/#nodeport>nodeport service</a> with a loadbalancer attached to all Kubernetes nodes on nodeports’ port. A nodeport service allows a service being reachable via any Kubernetes node at a specific port. Kubernetes (most commonly <a href=https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/>kube-proxy</a> component) makes sure the packet who will target this port will eventually reach the pod of this service. Being able to use any instance to reach a service makes the loadbalancer implementation in AWS easier since Kubernetes only needs to create an AWS loadbalancer and have all Kubernetes nodes as targets in the target groups at the specific port. Even if the NLB hits an Kubernetes instance that doesn’t contain the service’s pod, kube-proxy will redirect it to the right instance.</p><hr><p>Back to our case, in theory if we try to hit an endpoint associated with our the ingress controller and the NLB <strong>from inside</strong> the Kubernetes cluster there is a chance that our packet will start from an instance A will go to NLB and then directed back to instance A where kube-proxy should direct it to the right destination.</p><p>In our case, there were connections initiated from instance A with a certain IP towards the NLB. Considering NLB has the “preserve client IP” option set by default, it would try to create another TCP connection towards the same instance A with the same IP as source and destination address. Following figure tries to depict these rare cases.</p><figure><img src=/9xCiq_rnwiC8Z8wM.png><figcaption>Problematic TCP connections from Kubernetes Node to NLB and back</figcaption></figure><p><a href=https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-troubleshooting.html#loopback-timeout>AWS’s docs</a> describe this situation as “<em>hairpinning/loopback</em>” and also states that it’s not supported. As mentioned <a href=https://aws.amazon.com/premiumsupport/knowledge-center/target-connection-fails-load-balancer/>here</a>, the host operating system sees the packet with the same IP as source and destination as invalid and fails to send response traffic, which causes the connection to fail.</p><p>Disabling the “<em>preserve client IP</em>” flag will cause the source address of the TCP connection to be the one of NLB, so the TCP stream will have different sources and destination addresses. This makes the TCP connection legit and everything works again smoothly.</p><h3 id=conclusion><strong>Conclusion</strong></h3><p>For this case, the solution for us was to use the internal kubernetes DNS schema where appropriate; internal cluster traffic should not be routed via the NLB, but since we had use cases where we needed to use the NLB for traffic originating from a different cluster, we decided to have a deeper dive to be sure this problem wouldn’t affect similar traffic in the future. We now know that if we want in-cluster traffic going through NLB we just need to disable the “<em>preserve client IP</em>” flag. We can achieve this in Kubernetes by adding the following annotation in our service as described in <a href=https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/service/annotations/#traffic-routing>documentation</a>.</p><blockquote><p>service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=false</p></blockquote><p>Using this flag we lose the ability of having the real IP of the client in our logs but we can always get these IPs from NLB’s logs if required and correlate connections.</p><p><strong>Figuring this out has been a great collaboration across domains. Special thanks to Peter Flood from the payments product team.</strong></p><p>As mentioned before, at Beat we strive to look at things in depth when possible and we are not satisfied until we find the root causes of a problem. When we have interesting cases that others might find useful, we try to share in form of blog posts.</p><p>Hopefully, this article will save you some hours of debugging.</p><hr><blockquote><p>This post was originally published in Beat Engineering Blog, as part of my engineering work at Beat. Cross-posting here for posterity reasons.</p><p><a href=https://build.thebeat.co/a-curious-case-of-aws-nlb-timeouts-in-kubernetes-522bd88a3399>A curious case of AWS NLB timeouts in Kubernetes</a></p></blockquote></div><div class=tags><ul class=flat><li class=tag-li><a href=/tags/aws>AWS</a></li><li class=tag-li><a href=/tags/kubernetes>Kubernetes</a></li><li class=tag-li><a href=/tags/aws-nlb>AWS NLB</a></li><li class=tag-li><a href=/tags/tcpdump>TCPDUMP</a></li></ul></div><div class=back><a href=https://astrikos.github.io><span aria-hidden=true>← Back</span></a></div><div class=back></div></div></div><div class="footer wrapper"><nav class=nav><div>2021</div></nav></div><script>feather.replace()</script></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>A curious case of AWS NLB timeouts in Kubernetes - Andreas Strikos</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta itemprop="name" content="A curious case of AWS NLB timeouts in Kubernetes">
+<meta itemprop="description" content="A debugging adventure that allowed us to solve the tail latencies our Kubernetes applications were experiencing when talking with our AWS NLB."><meta itemprop="datePublished" content="2021-04-13T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2021-04-13T00:00:00+00:00" />
+<meta itemprop="wordCount" content="1610">
+<meta itemprop="keywords" content="AWS,Kubernetes,AWS NLB,TCPDUMP," /><meta property="og:title" content="A curious case of AWS NLB timeouts in Kubernetes" />
+<meta property="og:description" content="A debugging adventure that allowed us to solve the tail latencies our Kubernetes applications were experiencing when talking with our AWS NLB." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://astrikos.github.io/2021/04/a-curious-case-of-aws-nlb-timeouts-in-kubernetes/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-04-13T00:00:00+00:00" />
+<meta property="article:modified_time" content="2021-04-13T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="A curious case of AWS NLB timeouts in Kubernetes"/>
+<meta name="twitter:description" content="A debugging adventure that allowed us to solve the tail latencies our Kubernetes applications were experiencing when talking with our AWS NLB."/>
+<link rel="stylesheet" type="text/css" media="screen" href="https://astrikos.github.iocss/normalize.css" />
+	<link rel="stylesheet" type="text/css" media="screen" href="https://astrikos.github.iocss/main.css" />
+
+        <link id="dark-scheme" rel="stylesheet" type="text/css" href="https://astrikos.github.iocss/dark.css" />
+
+	<script src="https://astrikos.github.iojs/feather.min.js"></script>
+	
+		<script src="https://astrikos.github.iojs/main.js"></script>
+</head>
+
+<body>
+	<div class="container wrapper">
+		<div class="header">
+	
+		<div class="avatar">
+			<a href="https://astrikos.github.io">
+				<img src="/boy-student-sitting.webp" alt="Andreas Strikos" />
+			</a>
+		</div>
+	
+	<h1 class="site-title"><a href="https://astrikos.github.io">Andreas Strikos</a></h1>
+	<div class="site-description"><p>Software and Infrastructure Engineer</p><nav class="nav social">
+			<ul class="flat"><li><a href="https://github.com/astrikos" title="Github"><i data-feather="github"></i></a></li><li><a href="https://www.linkedin.com/in/astrikos/" title="LinkedIn"><i data-feather="linkedin"></i></a></li><span class="scheme-toggle"><a href="#" id="scheme-toggle"></a></ul>
+		</nav>
+	</div>
+
+	<nav class="nav">
+		<ul class="flat">
+			
+			<li>
+				<a href="/">Home</a>
+			</li>
+			
+			<li>
+				<a href="/posts">All posts</a>
+			</li>
+			
+			<li>
+				<a href="/tags">Tags</a>
+			</li>
+			
+		</ul>
+	</nav>
+</div>
+
+
+		<div class="post">
+			<div class="post-header">
+				
+					<div class="meta">
+						<div class="date">
+							<span class="day">13</span>
+							<span class="rest">Apr 2021</span>
+						</div>
+					</div>
+				
+				<div class="matter">
+					<h1 class="title">A curious case of AWS NLB timeouts in Kubernetes</h1>
+				</div>
+			</div>
+
+			
+			
+					
+			<div class="markdown">
+				
+<figure >
+    
+        <img src="/xBKI1zezfbGA1gZz.png"  />
+    
+    
+</figure>
+
+<p>Some time ago <a href="https://thebeat.co/en/">Beat</a>&rsquo;s infrastructure team underwent a migration of the flagship service into our Kubernetes clusters and at the time we documented our preparations in a <a href="https://build.thebeat.co/preparing-before-the-storm-migrating-our-monolith-into-kubernetes-581611c10ae6">previous article</a>.</p>
+<p>Prior to the migration of the monolith we already had several services inside our Kubernetes cluster, which the monolith and other external services had to reach. The way to do that, was to use ingress controllers with help from <a href="https://github.com/kubernetes-sigs/external-dns">external-dns</a> to automatically expose microservices to a predefined DNS schema endpoint. Some of these ingress controllers were located behind AWS NLBs, mainly to serve our gRPC traffic.</p>
+<h3 id="tail-latencies"><strong>Tail Latencies</strong></h3>
+<p>At Beat we have an island architecture where each country we serve has its own infrastructure island and its own Kubernetes cluster. While we tend to keep things local some new services lately need to talk to services in other clusters (cross cluster services). One of these services is communicating using gRPC and is exposed using AWS NLB so services from other clusters can reach it. Besides services from different clusters, we also had services from the <strong><em>same</em></strong> cluster reaching it using also the very same NLB endpoint. Reaching NLB endpoints from inside the cluster was not by design rather was neglecting our configuration after migrating some services inside our Kubernetes clusters.</p>
+<p>At some point we noticed that services from the <strong><em>same</em></strong> cluster trying to reach the NLB endpoint were getting high latencies for the 99% percentile, known as high <a href="https://en.wikipedia.org/wiki/Long_tail">tail latencies</a>.</p>
+
+<figure >
+    
+        <img src="/QX5ydqst91H6c9tw.png"  />
+    
+    
+    <figcaption>
+        High 99th percentile latencies as seen from application using NLB endpoints
+        
+    </figcaption>
+    
+</figure>
+
+<p>Accessing the same service from <strong><em>inside</em></strong> the cluster using the native kubernetes DNS schema didn’t have the same results. Everything looked fine.</p>
+
+<figure >
+    
+        <img src="/80lWvbml6aKn2_1.png"  />
+    
+    
+    <figcaption>
+        Normal 99th percentile latencies as seen from application when using internal Kubernetes DNS endpoints
+        
+    </figcaption>
+    
+</figure>
+
+<p>We could have ended our saga there, but our engineering instincts were telling us that something is there, and it might also affect services that use the endpoint from outside the cluster even if we didn’t have proof yet.</p>
+<p>The following graph describes the situation we were seeing.</p>
+
+<figure >
+    
+        <img src="/WDwu1WzjTcF0keoD.png"  />
+    
+    
+    <figcaption>
+        Latencies based on the different endpoints
+        
+    </figcaption>
+    
+</figure>
+
+<p>Summarizing, service A from cluster A accessing service B from cluster A using NLB endpoint through ingress controller and NLB was seeing high tail latencies. Service A from cluster A accessing cluster’s A service B using kubernetes native DNS endpoint didn’t see high tail latencies. Service C from cluster B accessing service B using NLB endpoint was also not seeing high latencies.</p>
+<h3 id="debugging"><strong>Debugging</strong></h3>
+<p>Our first attempt to fix these high latencies was to experiment with several <a href="https://github.com/grpc/grpc/blob/master/doc/keepalive.md#defaults-values">keepalive options</a> of the gRPC protocol from the application side. Initially, we suspected that NLB was somehow ignoring keepalives and connections were going stale. Unfortunately, none of the combinations we tried made any difference. We were still seeing the same latency issue.</p>
+<p>We knew that the problem didn’t exist using the kubernetes DNS endpoint, so that meant that the problem was somewhere between NLB and our ingress controller.</p>
+<p>Our next step was to focus on the path from the kubernetes node to AWS NLB.</p>
+<p>Since none of our experiments on the application level were fruitful we decided to see what is happening in the network layer from one of our instances using tcpdump. Capturing and examining some traffic we initially noticed that we had several retransmissions of SYN packets.</p>
+
+<figure >
+    
+        <img src="/GSQYeXvTx8HJP17r.png"  />
+    
+    
+    <figcaption>
+        Network capture showing TCP SYN packet retransmissions
+        
+    </figcaption>
+    
+</figure>
+
+<p>Examining several individual TCP streams we observed that each of them was lacking a response.</p>
+
+<figure >
+    
+        <img src="/LA5y2LNQ3Uu1Iv6C.png"  />
+    
+    
+    <figcaption>
+        Network capture showing TCP session’s unacknowledged SYN packets
+        
+    </figcaption>
+    
+</figure>
+
+<p>That meant that we were trying to open TCP connections with the NLB but we didn’t get a SYN-ACK response packet to be able to establish the connection. The weird thing is that we were not seeing any kind of response from the target, for example a RST packet that would help us understand something more.</p>
+<p>Observing several performance metrics gathered periodically from our instance didn’t reveal any signs of load or exhaustion of any resource type of the instances. Examining several TCP streams didn’t also show us any low window sizes that would signal a busy TCP buffers from either side.</p>
+<p>Using wireshark’s tooling we graphed the retransmitted SYN packets from our instance and we could instantly see some correlation with the latencies that the applications hosted in the machine were seeing.</p>
+
+<figure >
+    
+        <img src="/GPPU2Sw4fNc5LhBn.png"  />
+    
+    
+    <figcaption>
+        Wireshark I/O graph of TCP SYN packet retransmissions
+        
+    </figcaption>
+    
+</figure>
+
+
+<figure >
+    
+        <img src="/zHRt4ka79BtoCwH8.png"  />
+    
+    
+    <figcaption>
+        Latencies seen from application correlated with wireshark I/O graph
+        
+    </figcaption>
+    
+</figure>
+
+<p>It was obvious that latencies were caused because we could not establish a new connection to the NLB and the application was waiting for some time until it retried with a new connection.</p>
+<p>After some further googling we landed in a couple of articles (<a href="https://www.linkedin.com/pulse/connection-optimization-between-nlb-target-groups-romesh-samarakone/">[1]</a>, <a href="https://www.niels-ole.com/cloud/aws/linux/2020/10/18/nlb-resets.html">[2]</a>) which didn’t exactly describe what we were experiencing but led us to make a new experiment attempt to disable the “<strong><em>preserve client IP</em></strong>” flag on our NLB target groups. This flag is enabled by default on Kubernetes AWS NLBs when we create a “<em>loadbalancer</em>” type of service and as suggested by the name it makes NLBs to preserve the client’s IP in the connections to its targets.</p>
+<p>Magically, this solved all our tail latencies issues; we were not seeing any more latencies and we didn’t have further retransmissions.</p>
+<h3 id="mystery-unwound"><strong>Mystery unwound</strong></h3>
+<p>So, what has happened here? Why did this option fix the retransmissions and latency issue for us?</p>
+<p>Reading the same <a href="https://www.niels-ole.com/cloud/aws/linux/2020/10/18/nlb-resets.html">article</a> once more we were directed to a <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-troubleshooting.html#loopback-timeout">specific documentation part of AWS</a> which states the following lines:</p>
+<blockquote>
+<p>Internal load balancers do not support hairpinning or loopback. When you register targets by instance ID, the source IP addresses of clients are preserved. If an instance is a client of an internal load balancer that it’s registered with by instance ID, the connection succeeds only if the request is routed to a different instance. Otherwise, the source and destination IP addresses are the same and the connection times out.</p>
+</blockquote>
+<p>Reading that made us connect the dots and unwound the mystery.</p>
+<p>In order for everyone to be able to follow our story we will spend the next paragraph explaining how a Kubernetes Loadbalancer service type works. If you are already familiar with it feel free to skip and go to the next one.</p>
+<hr>
+<p>A <a href="https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer">loadbalancer service</a> is basically a <a href="https://kubernetes.io/docs/concepts/services-networking/service/#nodeport">nodeport service</a> with a loadbalancer attached to all Kubernetes nodes on nodeports’ port. A nodeport service allows a service being reachable via any Kubernetes node at a specific port. Kubernetes (most commonly <a href="https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/">kube-proxy</a> component) makes sure the packet who will target this port will eventually reach the pod of this service. Being able to use any instance to reach a service makes the loadbalancer implementation in AWS easier since Kubernetes only needs to create an AWS loadbalancer and have all Kubernetes nodes as targets in the target groups at the specific port. Even if the NLB hits an Kubernetes instance that doesn’t contain the service’s pod, kube-proxy will redirect it to the right instance.</p>
+<hr>
+<p>Back to our case, in theory if we try to hit an endpoint associated with our the ingress controller and the NLB <strong>from inside</strong> the Kubernetes cluster there is a chance that our packet will start from an instance A will go to NLB and then directed back to instance A where kube-proxy should direct it to the right destination.</p>
+<p>In our case, there were connections initiated from instance A with a certain IP towards the NLB. Considering NLB has the “preserve client IP” option set by default, it would try to create another TCP connection towards the same instance A with the same IP as source and destination address. Following figure tries to depict these rare cases.</p>
+
+<figure >
+    
+        <img src="/9xCiq_rnwiC8Z8wM.png"  />
+    
+    
+    <figcaption>
+        Problematic TCP connections from Kubernetes Node to NLB and back
+        
+    </figcaption>
+    
+</figure>
+
+<p><a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-troubleshooting.html#loopback-timeout">AWS’s docs</a> describe this situation as “<em>hairpinning/loopback</em>” and also states that it’s not supported. As mentioned <a href="https://aws.amazon.com/premiumsupport/knowledge-center/target-connection-fails-load-balancer/">here</a>, the host operating system sees the packet with the same IP as source and destination as invalid and fails to send response traffic, which causes the connection to fail.</p>
+<p>Disabling the “<em>preserve client IP</em>” flag will cause the source address of the TCP connection to be the one of NLB, so the TCP stream will have different sources and destination addresses. This makes the TCP connection legit and everything works again smoothly.</p>
+<h3 id="conclusion"><strong>Conclusion</strong></h3>
+<p>For this case, the solution for us was to use the internal kubernetes DNS schema where appropriate; internal cluster traffic should not be routed via the NLB, but since we had use cases where we needed to use the NLB for traffic originating from a different cluster, we decided to have a deeper dive to be sure this problem wouldn’t affect similar traffic in the future. We now know that if we want in-cluster traffic going through NLB we just need to disable the “<em>preserve client IP</em>” flag. We can achieve this in Kubernetes by adding the following annotation in our service as described in <a href="https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/service/annotations/#traffic-routing">documentation</a>.</p>
+<blockquote>
+<p>service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=false</p>
+</blockquote>
+<p>Using this flag we lose the ability of having the real IP of the client in our logs but we can always get these IPs from NLB’s logs if required and correlate connections.</p>
+<p><strong>Figuring this out has been a great collaboration across domains. Special thanks to Peter Flood from the payments product team.</strong></p>
+<p>As mentioned before, at Beat we strive to look at things in depth when possible and we are not satisfied until we find the root causes of a problem. When we have interesting cases that others might find useful, we try to share in form of blog posts.</p>
+<p>Hopefully, this article will save you some hours of debugging.</p>
+<hr>
+<blockquote>
+<p>This post was originally published in Beat Engineering Blog, as part of my engineering work at Beat. Cross-posting here for posterity reasons.</p>
+<p><a href="https://build.thebeat.co/a-curious-case-of-aws-nlb-timeouts-in-kubernetes-522bd88a3399">A curious case of AWS NLB timeouts in Kubernetes</a></p>
+</blockquote>
+
+			</div>
+
+			<div class="tags">
+				
+					
+						<ul class="flat">
+							
+							<li class="tag-li"><a href="/tags/aws">AWS</a></li>
+							
+							<li class="tag-li"><a href="/tags/kubernetes">Kubernetes</a></li>
+							
+							<li class="tag-li"><a href="/tags/aws-nlb">AWS NLB</a></li>
+							
+							<li class="tag-li"><a href="/tags/tcpdump">TCPDUMP</a></li>
+							
+						</ul>
+					
+				
+			</div>
+
+			
+			
+			<div class="back">
+				<a href="https://astrikos.github.io"><span aria-hidden="true">← Back</span></a>
+			</div>
+			
+
+			<div class="back">
+				
+			</div></div>
+		
+	</div>
+	
+	<div class="footer wrapper">
+	<nav class="nav">
+		<div>2021 </div>
+		
+	</nav>
+</div><script>feather.replace()</script>
+</body>
+</html>

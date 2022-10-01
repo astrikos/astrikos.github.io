@@ -1,2 +1,21 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Conntrack on Andreas Strikos</title><link>https://astrikos.github.io/tags/conntrack/</link><description>Recent content in Conntrack on Andreas Strikos</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 16 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/conntrack/index.xml" rel="self" type="application/rss+xml"/><item><title>Sometimes It's Not Always DNS</title><link>https://astrikos.github.io/2021/07/sometimes-its-not-always-dns/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><guid>https://astrikos.github.io/2021/07/sometimes-its-not-always-dns/</guid><description>Beat’s infrastructure architecture consists of multiple islands that each one of them contains a separate Kubernetes cluster. Recently we took the decision to allow services from different clusters to be able to discover each other. Since we were already using Istio we decided to leverage Istio’s multi cluster capability.
-After preparing our setup and testing it with some of our home grown tools, we tried to switch one of our lower traffic services to use Istio’s multi cluster discovery.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Conntrack on Andreas Strikos</title>
+    <link>https://astrikos.github.io/tags/conntrack/</link>
+    <description>Recent content in Conntrack on Andreas Strikos</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 16 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://astrikos.github.io/tags/conntrack/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Sometimes It&#39;s Not Always DNS</title>
+      <link>https://astrikos.github.io/2021/07/sometimes-its-not-always-dns/</link>
+      <pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://astrikos.github.io/2021/07/sometimes-its-not-always-dns/</guid>
+      <description>Beat’s infrastructure architecture consists of multiple islands that each one of them contains a separate Kubernetes cluster. Recently we took the decision to allow services from different clusters to be able to discover each other. Since we were already using Istio we decided to leverage Istio’s multi cluster capability.
+After preparing our setup and testing it with some of our home grown tools, we tried to switch one of our lower traffic services to use Istio’s multi cluster discovery.</description>
+    </item>
+    
+  </channel>
+</rss>
