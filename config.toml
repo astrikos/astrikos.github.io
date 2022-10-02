@@ -1,4 +1,4 @@
-baseURL = 'https://astrikos.github.io/'
+baseURL = 'https://blog.strikos.name/'
 languageCode = 'en-us'
 title = 'Andreas Strikos'
 theme = "ink-free"
