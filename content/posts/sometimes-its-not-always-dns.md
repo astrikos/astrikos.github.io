@@ -2,7 +2,7 @@
 title: "Sometimes It's Not Always DNS"
 date: 2021-07-16
 draft: false
-description: "A debugging adventure that was triggered by some innocent DNS resolution errors and became a deep dive into Istio’s multi cluster architecture, iptables, conntrack and kernel options."
+description: "A debugging journey that was triggered by some innocent DNS resolution errors and became a deep dive into Istio’s multi cluster architecture, iptables, conntrack and kernel options."
 tags: [Kubernetes, DNS, Istio, Conntrack, Iptables]
 ---
 
